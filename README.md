@@ -1,6 +1,6 @@
-# UnityUIPrefabMigration
+# Unity跨UI架构预制体移植工具
 
-Unity 跨 UI 架构预制体移植工具，用于在旧 UI 框架迁移到新 UI 框架时，批量检查 Prefab 或 Scene 中的 Missing Script，并按配置将旧组件替换为新组件，或安全移除不再需要的旧组件。
+用于在旧UI框架迁移到新UI框架时，批量检查 Prefab 或 Scene 中的 Missing Script，并按配置将旧组件替换为新组件，或安全移除不再需要的旧组件。
 
 这个工具适合处理如下场景：
 
