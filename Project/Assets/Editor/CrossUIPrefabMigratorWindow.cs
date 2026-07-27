@@ -36,6 +36,37 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
     private string cachedSourcePath = "";
 
     private CrossUIPrefabMigrationConfig migrationConfig;
+    private static GUIStyle linkLabelStyle;
+
+    private static GUIStyle LinkLabelStyle
+    {
+        get
+        {
+            if (linkLabelStyle == null)
+            {
+                linkLabelStyle = new GUIStyle(EditorStyles.label)
+                {
+                    wordWrap = false,
+                    clipping = TextClipping.Clip,
+                    stretchWidth = true
+                };
+
+                Color normalColor = EditorGUIUtility.isProSkin
+                    ? new Color(0.55f, 0.76f, 1f)
+                    : new Color(0.06f, 0.32f, 0.75f);
+                Color activeColor = EditorGUIUtility.isProSkin
+                    ? new Color(0.38f, 0.62f, 0.95f)
+                    : new Color(0.02f, 0.18f, 0.55f);
+
+                linkLabelStyle.normal.textColor = normalColor;
+                linkLabelStyle.hover.textColor = normalColor;
+                linkLabelStyle.focused.textColor = normalColor;
+                linkLabelStyle.active.textColor = activeColor;
+            }
+
+            return linkLabelStyle;
+        }
+    }
 
     [MenuItem("Tools/跨 UI 架构/预制体移植工具")]
     public static void ShowWindow()
@@ -52,7 +83,7 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
 
     private void OnGUI()
     {
-        EditorGUILayout.Space(8);
+        GUILayout.Space(8f);
         EditorGUILayout.HelpBox(
             "流程: 选择目标根对象 → 配置 sourceName/sourceGuid 与替换目标 → 检查 → 逐项处理。旧项目 Assets 路径只在需要把 Missing Script 的 GUID 解析成脚本名时填写。",
             MessageType.None);
@@ -96,7 +127,7 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
         if (configWarnings.Count > 0)
             EditorGUILayout.HelpBox("配置检查:\n" + string.Join("\n", configWarnings), MessageType.Warning);
 
-        EditorGUILayout.Space(6);
+        GUILayout.Space(6f);
 
         // 目标对象 — allowSceneObjects: true, 从 Hierarchy 拖
         EditorGUILayout.BeginHorizontal();
@@ -125,7 +156,7 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
             EditorGUILayout.LabelField(hint, EditorStyles.miniLabel);
         }
 
-        EditorGUILayout.Space(4);
+        GUILayout.Space(4f);
 
         // 旧项目 Assets 路径
         EditorGUILayout.LabelField("旧项目 Assets 路径（可选）:", EditorStyles.boldLabel);
@@ -151,7 +182,7 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
         if (guidToNameCache.Count > 0)
             EditorGUILayout.LabelField($"  已加载 {guidToNameCache.Count} 条 GUID映射", EditorStyles.miniLabel);
 
-        EditorGUILayout.Space(8);
+        GUILayout.Space(8f);
 
         // 按钮
         EditorGUILayout.BeginHorizontal();
@@ -177,7 +208,7 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
         if (!string.IsNullOrEmpty(lastScanNotice))
             EditorGUILayout.HelpBox(lastScanNotice, lastScanNoticeType);
 
-        EditorGUILayout.Space(8);
+        GUILayout.Space(8f);
 
         // 结果
         if (hasScanned)
@@ -196,7 +227,7 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
                     DrawItem(items[i], i);
                 EditorGUILayout.EndScrollView();
 
-                EditorGUILayout.Space(4);
+                GUILayout.Space(4f);
                 if (GUILayout.Button("复制结果到剪贴板", GUILayout.Height(24)))
                     CopyToClipboard();
             }
@@ -223,7 +254,7 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.LabelField($"[{index + 1}]", GUILayout.Width(26));
-        if (GUILayout.Button(item.nodePath, EditorStyles.linkLabel))
+        if (GUILayout.Button(item.nodePath, LinkLabelStyle))
         {
             LocateNode(item);
         }
@@ -299,7 +330,7 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
 
         // 点击整行空白区域定位节点
         Rect itemRect = GUILayoutUtility.GetLastRect();
-        EditorGUILayout.Space(2);
+        GUILayout.Space(2f);
         if (Event.current.type == EventType.MouseDown && Event.current.button == 0
             && itemRect.Contains(Event.current.mousePosition))
         {
@@ -387,11 +418,13 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
     /// </summary>
     private void DetermineYamlSource()
     {
-        // 1) 如果是 PrefabMode 中的对象 → 最佳情况，随便改
-        var stage = PrefabStageUtility.GetCurrentPrefabStage();
-        if (stage != null && targetRoot.scene == stage.scene)
+        // Prefab Mode object: edit the opened prefab contents directly.
+        string prefabStageAssetPath;
+        UnityEngine.SceneManagement.Scene prefabStageScene;
+        if (TryGetCurrentPrefabStage(out prefabStageAssetPath, out prefabStageScene)
+            && targetRoot.scene == prefabStageScene)
         {
-            yamlSourcePath = stage.assetPath;
+            yamlSourcePath = prefabStageAssetPath;
             yamlSourceIsScene = false;
             isDirectEdit = true;
             return; 
@@ -460,6 +493,93 @@ public class CrossUIPrefabMigratorWindow : EditorWindow
         yamlSourceIsScene = false;
         lastScanNotice = "当前目标来自未保存场景，无法读取 Scene YAML。工具只能检测 Missing Script，不能自动识别原脚本名/GUID；如需替换，请先保存场景、进入 Prefab Mode，或拖入 Prefab 资产。";
         lastScanNoticeType = MessageType.Warning;
+    }
+
+    private static bool TryGetCurrentPrefabStage(out string assetPath, out UnityEngine.SceneManagement.Scene scene)
+    {
+        assetPath = "";
+        scene = default(UnityEngine.SceneManagement.Scene);
+
+        Type utilityType = FindEditorType("UnityEditor.SceneManagement.PrefabStageUtility")
+            ?? FindEditorType("UnityEditor.Experimental.SceneManagement.PrefabStageUtility");
+        if (utilityType == null) return false;
+
+        var method = utilityType.GetMethod(
+            "GetCurrentPrefabStage",
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        if (method == null) return false;
+
+        object stage;
+        try
+        {
+            stage = method.Invoke(null, null);
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (stage == null) return false;
+
+        Type stageType = stage.GetType();
+        scene = GetSceneProperty(stage, stageType, "scene");
+        assetPath = GetStringProperty(stage, stageType, "assetPath");
+        if (string.IsNullOrEmpty(assetPath))
+            assetPath = GetStringProperty(stage, stageType, "prefabAssetPath");
+
+        return true;
+    }
+
+    private static Type FindEditorType(string fullName)
+    {
+        Type type = Type.GetType(fullName + ", UnityEditor");
+        if (type != null) return type;
+
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            type = assembly.GetType(fullName);
+            if (type != null) return type;
+        }
+
+        return null;
+    }
+
+    private static string GetStringProperty(object instance, Type type, string propertyName)
+    {
+        var property = type.GetProperty(
+            propertyName,
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        if (property != null)
+            return property.GetValue(instance, null) as string ?? "";
+
+        var field = type.GetField(
+            propertyName,
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        if (field != null)
+            return field.GetValue(instance) as string ?? "";
+
+        return "";
+    }
+
+    private static UnityEngine.SceneManagement.Scene GetSceneProperty(object instance, Type type, string propertyName)
+    {
+        var property = type.GetProperty(
+            propertyName,
+            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        object value = property != null ? property.GetValue(instance, null) : null;
+        if (value == null)
+        {
+            var field = type.GetField(
+                propertyName,
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (field != null)
+                value = field.GetValue(instance);
+        }
+
+        if (value is UnityEngine.SceneManagement.Scene)
+            return (UnityEngine.SceneManagement.Scene)value;
+
+        return default(UnityEngine.SceneManagement.Scene);
     }
 
     /// <summary>

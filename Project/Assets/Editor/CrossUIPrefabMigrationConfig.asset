@@ -13,13 +13,8 @@ MonoBehaviour:
   m_Name: CrossUIPrefabMigrationConfig
   m_EditorClassIdentifier: 
   mappings:
-  - sourceName: Button
+  - sourceName: Mask
     sourceGuid: 
-    targetScripts:
-    - {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-    targetTypeNames: []
-  - sourceName: ImageTest
-    sourceGuid: 
-    targetScripts:
-    - {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-    targetTypeNames: []
+    targetScripts: []
+    targetTypeNames:
+    - Image
