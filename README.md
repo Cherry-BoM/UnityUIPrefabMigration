@@ -62,6 +62,10 @@ Create > Tools > 创建预制体移植配置
 
 ### 2. 选择配置与加载旧项目映射
 
+```text
+Tools > 跨 UI 架构 > 预制体移植工具
+```
+
 工具窗口会显示当前迁移配置、映射摘要、目标对象、旧项目 `Assets` 路径和扫描按钮。
 
 旧项目路径用于读取旧项目中的 `.cs.meta` 文件，并将脚本 GUID 解析为脚本名。映射信息会缓存到当前项目的 `Library/CrossUIPrefabMigrator` 下。
