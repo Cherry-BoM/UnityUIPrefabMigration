@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a060b1f4c9eca76448fdc653d69ea1b9, type: 3}
+  m_Name: CrossUIPrefabMigrationConfig
+  m_EditorClassIdentifier: 
+  mappings:
+  - sourceName: Button
+    sourceGuid: 
+    targetScripts:
+    - {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+    targetTypeNames: []
+  - sourceName: ImageTest
+    sourceGuid: 
+    targetScripts:
+    - {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+    targetTypeNames: []

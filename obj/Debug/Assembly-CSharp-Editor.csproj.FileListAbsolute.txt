@@ -1,0 +1,6 @@
+F:\Products99999_Self\Test\My project\Temp\bin\Debug\Assembly-CSharp-Editor.dll
+F:\Products99999_Self\Test\My project\Temp\bin\Debug\Assembly-CSharp-Editor.pdb
+F:\Products99999_Self\Test\My project\obj\Debug\Assembly-CSharp-Editor.csproj.AssemblyReference.cache
+F:\Products99999_Self\Test\My project\obj\Debug\Assembly-CSharp-Editor.csproj.CoreCompileInputs.cache
+F:\Products99999_Self\Test\My project\obj\Debug\Assembly-CSharp-Editor.dll
+F:\Products99999_Self\Test\My project\obj\Debug\Assembly-CSharp-Editor.pdb
