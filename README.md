@@ -11,35 +11,10 @@ Unity 跨 UI 架构预制体移植工具，用于在旧 UI 框架迁移到新 UI
 
 ## 功能特性
 
-- 扫描 Prefab、Prefab Mode、已保存 Scene 中的丢失组件。
-- 从 Unity YAML 中读取 Missing Script 的 GUID、所在 GameObject 路径和组件信息。
 - 可加载旧项目 `Assets` 目录，建立 `GUID -> 脚本名` 缓存。
-- 使用 `ScriptableObject` 配置迁移规则：`sourceName/sourceGuid -> targetScripts/targetTypeNames`。
+- 使用 `ScriptableObject` 配置迁移规则。
 - 支持逐项替换、逐项移除和一键处理。
 - 支持替换当前项目中已经存在但需要迁移的旧组件。
-- 对未保存场景或不可读 YAML 提供降级扫描。
-- 处理 Prefab 资产时会尝试保存 Prefab；处理 Scene 或 Prefab Mode 时会标记为 Dirty，便于手动保存。
-
-## 目录结构
-
-```text
-UnityUIPrefabMigration
-├── package
-│   └── UiPrefabMigration.unitypackage
-├── Project
-│   ├── Assets
-│   │   └── Editor
-│   │       ├── CrossUIPrefabMigratorWindow.cs
-│   │       ├── CrossUIPrefabMigrationConfig.cs
-│   │       └── CrossUIPrefabMigrationConfig.asset
-│   └── ProjectSettings
-├── img
-│   ├── 1.png
-│   ├── 2.png
-│   ├── 3.png
-│   └── 4.png
-└── README.md
-```
 
 ## 安装方式
 
@@ -70,23 +45,8 @@ Assets/Editor/CrossUIPrefabMigrationConfig.asset
 
 ## 环境要求
 
-- 示例工程版本：Unity `2018.4.19f1`。
+- 示例工程版本：Unity `2018.4.19f1`，2021也兼容。
 - 工具为 Editor 扩展，需要放在 `Editor` 目录下使用。
-- 建议启用文本序列化：`Edit > Project Settings > Editor > Asset Serialization > Force Text`。
-
-如果 Prefab 或 Scene 不是文本 YAML，工具无法完整读取 Missing Script 的 GUID 和组件路径，只能做降级扫描。
-
-## 快速开始
-
-1. 在 Unity 中打开菜单：`Tools > 跨 UI 架构 > 预制体移植工具`。
-2. 创建或选择迁移配置资产 `CrossUIPrefabMigrationConfig`。
-3. 在配置资产中添加映射规则。
-4. 将目标 Prefab 根节点拖入工具窗口，或在 Hierarchy 中选中后点击 `使用选中`。
-5. 如果需要从 Missing Script 的 GUID 反查旧脚本名，填写旧项目的 `Assets` 目录并点击 `加载源项目脚本映射`。
-6. 点击 `检查丢失组件`。
-7. 检查扫描结果，确认节点、旧组件名、GUID 和映射目标。
-8. 点击单项 `替换`、`移除 Missing`，或确认无误后点击 `一键处理`。
-9. 处理完成后检查 Inspector，并保存 Prefab 或 Scene。
 
 ## 截图说明
 
@@ -142,55 +102,11 @@ ImageTest -> Image
 
 ![扫描并处理](img/4.png)
 
-## 配置示例
-
-替换旧组件为新组件：
-
-```text
-sourceName: OldButton
-sourceGuid:
-targetScripts:
-  - NewButton.cs
-targetTypeNames:
-  - CanvasGroup
-```
-
-按 GUID 替换 Missing Script：
-
-```text
-sourceName:
-sourceGuid: 0b86d4307e612014fb366b1741ea9735
-targetScripts:
-  - Image.cs
-targetTypeNames:
-```
-
-只移除旧组件：
-
-```text
-sourceName: DeprecatedWidget
-sourceGuid:
-targetScripts: []
-targetTypeNames: []
-```
-
 ## 处理模式
-
-### Prefab 资产
-
-从 Project 窗口拖入 Prefab 资产时，工具会读取 Prefab YAML，处理后尝试保存 Prefab 资产。
 
 ### Prefab Mode
 
 在 Prefab Mode 中选择根对象时，工具会直接处理当前打开的 Prefab 内容。处理后会标记为已修改，需要手动保存。
-
-### 场景对象
-
-如果目标对象来自已保存 Scene，工具会读取 Scene YAML 来识别 Missing Script。若刚修改过场景层级或组件，建议先保存 Scene 后再扫描。
-
-### 未保存场景或不可读 YAML
-
-工具会降级为运行时扫描。降级扫描只能识别 Missing Script 位置，通常无法读取旧脚本名或 GUID，因此更适合做移除，不适合自动替换。
 
 ## 注意事项
 
@@ -204,14 +120,6 @@ targetTypeNames: []
 
 ## 常见问题
 
-### 为什么必须建议开启 Force Text？
-
-工具需要读取 Prefab 或 Scene 的 YAML，才能拿到 Missing Script 的 GUID、组件 fileID 和 GameObject 路径。二进制序列化会导致这些信息不可读。
-
-### 没有旧项目源码还能用吗？
-
-可以。只要你能拿到旧脚本的 GUID，就可以直接在 `sourceGuid` 中配置迁移规则。若还有旧项目的 `.cs.meta` 文件，填写旧项目 `Assets` 路径后工具可以自动建立 GUID 到脚本名的映射。
-
 ### 为什么替换后新组件字段是默认值？
 
 工具当前只负责组件级迁移，不负责字段级数据迁移。新组件添加后会使用 Unity 默认序列化值，字段数据需要手动补齐，或根据项目规则扩展工具。
@@ -219,15 +127,3 @@ targetTypeNames: []
 ### 一键处理安全吗？
 
 一键处理适合映射规则已经确认无误的情况。第一次迁移某类 Prefab 时，建议先使用逐项处理验证结果。
-
-## 入口
-
-```text
-Tools > 跨 UI 架构 > 预制体移植工具
-```
-
-配置资产创建入口：
-
-```text
-Create > Tools > 创建预制体移植配置
-```
